@@ -1,0 +1,4 @@
+name: "${artifactId}"
+version: "${version}"
+main: eu.realmcompany.regna.RegnaKaryon
+api-version: 1.16

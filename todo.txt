@@ -1,0 +1,29 @@
+# Karyon
+  - Services
+    - Commands
+    - Localisation
+    - Profiles
+    - Interface (tablist & scoreboard)
+
+  - Network
+    - API
+    - Proxy
+    - Database
+# For RPG
+  - Quests
+  - Arena
+  - Creatures
+    - Bosses for Arena
+    - Decorative
+
+# For Players
+  - Spawn
+  - Tpa
+
+# For Admins
+  - Vanish
+  - Tp
+  - Tracker
+  - Action logger
+  - Invsee
+
