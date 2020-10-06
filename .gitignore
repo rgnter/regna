@@ -3,5 +3,8 @@
 target/
 *.iml
 
+# Scripts
+scripts/tmp
+
 
 

@@ -1,0 +1,2 @@
+sh scripts/native
+mvn clean package

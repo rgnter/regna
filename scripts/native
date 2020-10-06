@@ -1,0 +1,10 @@
+FILE="scripts/tmp/native.jar"
+if test -f "$FILE"; then
+    echo "Native jar exists skip"
+else
+    mkdir scripts
+    mkdir scripts/tmp
+    echo "Downloading & installing native jar"
+    curl https://yivesmirror.com/files/paper/Paper-1.16.3-latest.jar --output "$FILE"
+    mvn install:install-file -Dfile="$FILE" -DgroupId="com.destroystokyo.paper" -DartifactId="paper-server" -Dversion="1.16.3" -Dpackaging="jar"
+fi
