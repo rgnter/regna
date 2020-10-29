@@ -6,5 +6,5 @@ target/
 # Scripts
 scripts/tmp
 
-
-
+# mvn
+dependency-reduced-pom.xml
