@@ -1,4 +1,65 @@
 package eu.realmcompany.regna.abstraction;
 
-public class AService {
+import eu.realmcompany.regna.RegnaKaryon;
+import eu.realmcompany.regna.services.RegnaServices;
+import lombok.Getter;
+import lombok.Setter;
+import org.bukkit.Bukkit;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
+import org.jetbrains.annotations.NotNull;
+import xyz.rgnt.recrd.Logger;
+
+public abstract class AService implements Listener {
+
+    @Getter @Setter
+    private String serviceName = this.getClass().getSimpleName();
+
+    @Getter
+    private final RegnaKaryon instance;
+    @Getter
+    private final RegnaServices services;
+
+    @Getter
+    private final Logger logger;
+
+    /**
+     * Service constructor
+     * @param services Service instance
+     */
+    public AService(@NotNull RegnaServices services) {
+        this.services = services;
+        this.instance = services.getInstance();
+        this.logger   = services.getLogger();
+    }
+
+
+    /**
+     * Called on service initialization
+     * @throws Exception Thrown when Service couldn't handle Exception.
+     */
+    abstract public void initialize() throws Exception;
+
+    /**
+     * Called on service termination
+     * @throws Exception Thrown when Service couldn't handle Exception.
+     */
+    abstract public void terminate()  throws Exception;
+
+    /**
+     * Sexier way of registering listeners
+     */
+    public void registerAsListener() {
+        Bukkit.getPluginManager().registerEvents((Listener) this, getInstance());
+    }
+
+    /**
+     * Sexier way of unregistering listeners
+     */
+    public void unregisterAsListener() {
+        HandlerList.unregisterAll(this);
+    }
+
+
+
 }
