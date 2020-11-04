@@ -3,25 +3,18 @@ package eu.realmcompany.regna.abstraction;
 import eu.realmcompany.regna.RegnaKaryon;
 import eu.realmcompany.regna.services.RegnaServices;
 import lombok.Getter;
-import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
-import xyz.rgnt.recrd.Logger;
 
 public abstract class AService implements Listener {
-
-    @Getter @Setter
-    private String serviceName = this.getClass().getSimpleName();
 
     @Getter
     private final RegnaKaryon instance;
     @Getter
     private final RegnaServices services;
 
-    @Getter
-    private final Logger logger;
 
     /**
      * Service constructor
@@ -30,9 +23,15 @@ public abstract class AService implements Listener {
     public AService(@NotNull RegnaServices services) {
         this.services = services;
         this.instance = services.getInstance();
-        this.logger   = services.getLogger();
     }
 
+
+
+    /**
+     * Called on service construction
+     * @throws Exception Thrown when Service couldn't handle Exception.
+     */
+    public void construct() throws Exception {}
 
     /**
      * Called on service initialization
@@ -59,7 +58,5 @@ public abstract class AService implements Listener {
     public void unregisterAsListener() {
         HandlerList.unregisterAll(this);
     }
-
-
 
 }

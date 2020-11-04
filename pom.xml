@@ -31,14 +31,19 @@
 
     <dependencies>
         <dependency>
-            <groupId>xyz.rgnt</groupId>
-            <artifactId>mth</artifactId>
-            <version>1.4-release</version>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>2.13.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.13.3</version>
         </dependency>
         <dependency>
             <groupId>xyz.rgnt</groupId>
-            <artifactId>recrd</artifactId>
-            <version>1.0-release</version>
+            <artifactId>mth</artifactId>
+            <version>1.4-release</version>
         </dependency>
         <dependency>
             <groupId>com.destroystokyo.paper</groupId>

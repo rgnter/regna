@@ -2,11 +2,14 @@ package eu.realmcompany.regna.services;
 
 import eu.realmcompany.regna.RegnaKaryon;
 import eu.realmcompany.regna.abstraction.AService;
+import eu.realmcompany.regna.abstraction.Service;
+import eu.realmcompany.regna.diagnostics.timings.Timer;
+import eu.realmcompany.regna.services.admin.AdminService;
 import eu.realmcompany.regna.services.chat.ChatService;
 import lombok.Getter;
+import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import xyz.rgnt.recrd.Logger;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -15,12 +18,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+@Log4j2(topic = "RegnaServices")
 public class RegnaServices {
 
     @Getter
     private RegnaKaryon instance;
-    @Getter
-    private Logger logger;
 
     private final Map<Class<? extends AService>, AService> services = new HashMap<>();
 
@@ -31,9 +33,57 @@ public class RegnaServices {
      */
     public RegnaServices(RegnaKaryon instance) {
         this.instance = instance;
-        this.logger = instance.logger();
-
         registerService(ChatService.class);
+        registerService(AdminService.class);
+    }
+
+    public void construct() {
+        log.info("Constructing services...");
+
+        this.services.forEach((serviceClass, service) -> {
+            final Service data = serviceClass.getAnnotation(Service.class);
+            String serviceName = data != null ? data.value() : serviceClass.getSimpleName();
+
+            Timer timer = Timer.timings().start();
+            try {
+                service.construct();
+                log.info("Service §e{}§r constructed. Took §a{}§rms", serviceName, timer.stop().resultMilli());
+            } catch (Exception x) {
+                log.error("Failed to construct service §e{}§r", serviceName, x);
+            }
+        });
+    }
+
+    public void initialize() {
+        log.info("Initializing services...");
+
+        this.services.forEach((serviceClass, service) -> {
+            final Service data = serviceClass.getAnnotation(Service.class);
+            String serviceName = data != null ? data.value() : serviceClass.getSimpleName();
+            Timer timer = Timer.timings().start();
+            try {
+                service.initialize();
+                log.info("Service §e{}§r initialized. Took §a{}§rms", serviceName, timer.stop().resultMilli());
+            } catch (Exception x) {
+                log.error("Failed to initialize service §e{}§r", serviceName, x);
+            }
+        });
+    }
+
+    public void terminate() {
+        log.info("Terminating services...");
+
+        this.services.forEach((serviceClass, service) -> {
+            final Service data = serviceClass.getAnnotation(Service.class);
+            String serviceName = data != null ? data.value() : serviceClass.getSimpleName();
+            Timer timer = Timer.timings().start().start();
+            try {
+                service.terminate();
+                log.info("Service §e{}§r terminated. Took §a{}§rms", serviceName, timer.stop().resultMilli());
+            } catch (Exception x) {
+                log.error("Failed to terminate service §e{}§r", serviceName, x);
+            }
+        });
     }
 
     /**
@@ -55,29 +105,33 @@ public class RegnaServices {
      * @return Returns boolean true, if service was successfully registered.
      */
     public <A extends AService> boolean registerService(@NotNull Class<A> service) {
-        if(service == AService.class) {
-            this.logger.warn("Tried to register abstract service");
+        if (service == AService.class) {
+            log.warn("Tried to register abstract service");
             return false;
         }
         if (isServiceRegistered(service)) {
-            this.logger.warn("Tried to register service '{0}', which is already registered!", service.getName());
+            log.warn("Tried to register service §e{}§r, which is already registered!", service.getName());
             return false;
         }
+
+        final Service data = service.getAnnotation(Service.class);
+        String serviceName = data != null ? data.value() : service.getSimpleName();
 
         try {
             final Constructor<A> constructor = service.getConstructor(RegnaServices.class);
             final AService serviceInst = constructor.newInstance(this);
             this.services.put(service, serviceInst);
-            this.logger.info("Registered service §e{0}", serviceInst.getServiceName());
+            log.info("Registered service §e{}§r", serviceName);
             return true;
         } catch (NoSuchMethodException e) {
-            logger.error("Couldn't find default constructor for '{0}'", e, service);
+            log.error("Couldn't find default constructor for §e{}§r", serviceName, e);
+            log.error(e);
         } catch (IllegalAccessException e) {
-            logger.error("Couldn't access default constructor for '{0}'", e, service);
+            log.error("Couldn't access default constructor for §e{}§r", serviceName, e);
         } catch (InstantiationException e) {
-            logger.error("Couldn't create instance from default constructor for '{0}'", e, service);
+            log.error("Couldn't create instance from default constructor for §e{}§r", serviceName, e);
         } catch (InvocationTargetException e) {
-            logger.error("Service '{0}' thrown exception", e.getTargetException(), service);
+            log.error("Service §e{}§r thrown exception", serviceName, e, e.getTargetException());
         }
 
         return false;
@@ -91,12 +145,12 @@ public class RegnaServices {
      * @return Returns boolean true, if service was successfully unregistered.
      */
     public <A extends AService> boolean unregisterService(@NotNull Class<A> service) {
-        if(service == AService.class) {
-            this.logger.warn("Tried to unregister abstract service");
+        if (service == AService.class) {
+            log.warn("Tried to unregister abstract service");
             return false;
         }
         if (isServiceRegistered(service)) {
-            this.logger.warn("Tried to unregister service '{0}', which is not registered!", service.getName());
+            log.warn("Tried to unregister service §e{}§r, which is not registered!", service.getName());
             return false;
         }
 
@@ -106,7 +160,6 @@ public class RegnaServices {
     }
 
     /**
-     *
      * @param service Service class
      * @param <A>     Type of Service class
      * @return Returns optional with value of service instance.
@@ -116,22 +169,21 @@ public class RegnaServices {
     }
 
     /**
-     *
      * @param service Service class
      * @param <A>     Type of Service class
      * @return Returns service instance.
      */
     public <A extends AService> @Nullable A getService(@NotNull Class<A> service) {
-        if(service == AService.class) {
-            this.logger.warn("Tried to get abstract service");
+        if (service == AService.class) {
+            log.warn("Tried to get abstract service");
             return null;
         }
         if (!isServiceRegistered(service)) {
-            this.logger.error("Tried to get service '{0}', which is not registered!", service.getName());
+            log.error("Tried to get service §e{}§r, which is not registered!", service.getName());
             return null;
         }
 
-        return (A)this.services.get(service);
+        return (A) this.services.get(service);
     }
 
     /**
