@@ -95,7 +95,10 @@ public abstract class AStore {
      * Loads default
      */
     public void provideDefault() throws Exception {
+
         if (hasDefault) {
+            boolean succ = false;
+
             if(!file.exists())
                 create();
             // write default file
@@ -108,11 +111,13 @@ public abstract class AStore {
                     if (line != null)
                         writer.write(line + "\n");
                 } while (line != null);
-                // load it
-                load();
+               succ = true;
             } catch (Exception x) {
                 throw new Exception("Failed to load '" + path + "': " + x.getMessage(), x);
             }
+            // load
+            if(succ)
+                load();
         }
     }
 
