@@ -14,6 +14,7 @@ public class PacketStatics {
      */
     public static void setRealmConnection(@NotNull Player player) {
         EntityPlayer nmsPlayer = getNmsPlayer(player);
+
         nmsPlayer.playerConnection.networkManager.setPacketListener(new RealmPlayerConnection(
                 nmsPlayer.server,
                 nmsPlayer.playerConnection.networkManager,

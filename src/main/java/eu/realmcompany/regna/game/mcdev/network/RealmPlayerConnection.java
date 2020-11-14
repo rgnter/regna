@@ -17,6 +17,6 @@ public class RealmPlayerConnection extends PlayerConnection {
 
     @Override
     public void a(PacketPlayInFlying packet) {
-
+        super.a(packet);
     }
 }

@@ -64,7 +64,7 @@ public class RegnaKaryon extends JavaPlugin implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onJoin(PlayerJoinEvent event) {
-        PacketStatics.setRealmConnection(event.getPlayer());
+       PacketStatics.setRealmConnection(event.getPlayer());
     }
 
 

@@ -53,4 +53,12 @@ root:
       pitch: 1f
   chat:
     # JSON Chat format (Supports PAPI)
-    format: '{"text":"&7{player_name} &8\u2022 &f{message}"}'
+    # Internal: {message}, {player_name}
+    message-format: '{"text":"&7{player_name} &8\u2022 &f{message}"}'
+    # JSON Death format (Supports PAPI)
+    # Internal: {message}, {player_name}, {x}, {y}, {z}, {lost_xp}
+    death-format: '{"text":"&c\u2620 &7{message}"}'
+    # JSON Join/Quit format (Supports PAPI)
+    # Internal: {player_name}
+    join-format: '{"text":"&a+ §f{player_name}"}'
+    quit-format: '{"text":"&c- &f{player_name}"}'

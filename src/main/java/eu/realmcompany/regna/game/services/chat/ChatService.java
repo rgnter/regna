@@ -7,7 +7,7 @@ import eu.realmcompany.regna.abstraction.game.AGameService;
 import eu.realmcompany.regna.game.services.RegnaServices;
 import eu.realmcompany.regna.providers.storage.data.FriendlyData;
 import eu.realmcompany.regna.providers.storage.store.AStore;
-import eu.realmcompany.regna.statics.PapiStatics;
+import eu.realmcompany.regna.statics.PlaceholderStatics;
 import eu.realmcompany.regna.statics.PermissionStatics;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
@@ -17,11 +17,15 @@ import net.minecraft.server.v1_16_R2.PacketPlayOutChat;
 import org.apache.commons.text.StringEscapeUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.craftbukkit.v1_16_R2.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.permissions.Permission;
 import org.jetbrains.annotations.NotNull;
 import xyz.rgnt.mth.tuples.Pair;
@@ -40,6 +44,9 @@ public class ChatService extends AGameService {
     private FriendlyData config = FriendlyData.fromEmptyYaml();
 
     private String chatFormat;
+    private String deathFormat;
+    private String joinFormat;
+    private String quitFormat;
 
     private boolean emotesEnabled = true;
     private Permission emotesPermission = null;
@@ -83,7 +90,11 @@ public class ChatService extends AGameService {
      * Loads emotes from config
      */
     protected void loadConfiguration() {
-        this.chatFormat = this.config.getString("root.chat.format", "{\"text\":\"§7{player_name} §8\\u2022 §f{message}\"}");
+        this.chatFormat  = this.config.getString("root.chat.message-format", "{\"text\":\"§7{player_name} §8\\u2022 §f{message}\"}");
+        this.deathFormat = this.config.getString("root.chat.death-format", "{\"text\":\"&c\\u2620 &7{message}\"}");
+        //
+        this.joinFormat  = this.config.getString("root.chat.join-format", "{\"text\":\"&a+ §f{player_name}\"}");
+        this.quitFormat = this.config.getString("root.chat.quit-format", "{\"text\":\"&c- &f{player_name}\"}");
 
         // emotes
         this.emotesEnabled = this.config.getBool("root.emotes.enabled", true);
@@ -175,14 +186,14 @@ public class ChatService extends AGameService {
 
         try {
             String formatted = jsonFormat.replaceAll("(?i)\\{message}", Matcher.quoteReplacement(message)).replaceAll("(?i)\\{player_name}", playerName);
-            formatted = PapiStatics.askPapiForPlaceholders(formatted, sender);
+            formatted = PlaceholderStatics.askPapiForPlaceholders(formatted, sender);
 
             try {
                 JsonElement element = new JsonParser().parse(formatted);
 
                 PacketPlayOutChat packet = new PacketPlayOutChat(IChatBaseComponent.ChatSerializer.a(element), ChatMessageType.CHAT, sender.getUniqueId());
                 Bukkit.getOnlinePlayers().stream().map(player -> ((CraftPlayer) player)).forEach(player -> player.getHandle().playerConnection.sendPacket(packet));
-                Bukkit.getConsoleSender().sendMessage(String.format("§8(§7%s§8) §7%s §8-§f %s", sender.getClientBrandName(), playerName, StringEscapeUtils.unescapeJava(message)));
+                Bukkit.getConsoleSender().sendMessage(String.format("§8{§fChat§8} §8(§7%s§8) §7%s §8-§f %s", sender.getClientBrandName(), playerName, StringEscapeUtils.unescapeJava(message)));
             } catch (JsonSyntaxException x) {
                 log.error("Couldn't parse chat", x);
             }
@@ -190,4 +201,90 @@ public class ChatService extends AGameService {
             log.error("Couldn't process chat", x);
         }
     }
+
+    @EventHandler
+    public void onDeath(PlayerDeathEvent event) {
+        Player killed = event.getEntity();
+        Location loc = killed.getLocation();
+        String playerName = event.getEntity().getName();
+        String message = event.getDeathMessage();
+        if(message == null)
+            message = "";
+
+        String jsonFormat = ChatColor.translateAlternateColorCodes('&', this.deathFormat);
+
+        String formatted = jsonFormat
+                .replaceAll("(?i)\\{player_name}", playerName)
+                .replaceAll("(?i)\\{message}", Matcher.quoteReplacement(message))
+                .replaceAll("(?i)\\{x}\"", "" + loc.getBlockX())
+                .replaceAll("(?i)\\{y}\"", "" + loc.getBlockY())
+                .replaceAll("(?i)\\{z}\"", "" + loc.getBlockZ())
+                .replaceAll("(?i)\\{lost_xp}\"", "" + event.getDroppedExp());
+        formatted = PlaceholderStatics.askPapiForPlaceholders(formatted, killed);
+
+        try {
+            JsonElement element = new JsonParser().parse(formatted);
+            PacketPlayOutChat packet = new PacketPlayOutChat(IChatBaseComponent.ChatSerializer.a(element), ChatMessageType.CHAT, killed.getUniqueId());
+            Bukkit.getOnlinePlayers().stream().map(player -> ((CraftPlayer) player)).forEach(player -> player.getHandle().playerConnection.sendPacket(packet));
+            event.setDeathMessage("");
+        } catch (Exception x ){
+            log.error("Couldn't send death message", x);
+        } finally {
+            Bukkit.getConsoleSender().sendMessage(
+                    String.format("§8{§4Death§8}§7 %s %s\n\t\t\t§7Lost xp §e%d§r, §7Death location §c%d §a%d §9%d§8(§cx§7,§ay§7,§9z§8)", message, killed.getKiller() != null ? "§f" + playerName + "§7 killed by §f" + killed.getKiller().getName() + "§r" : "",
+                            event.getDroppedExp(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ())
+            );
+        }
+
+    }
+
+    @EventHandler
+    public void onJoin(PlayerJoinEvent event) {
+        Player joined = event.getPlayer();
+        String playerName = event.getPlayer().getName();
+
+        String jsonFormat = ChatColor.translateAlternateColorCodes('&', this.joinFormat);
+        String formatted = jsonFormat
+                .replaceAll("(?i)\\{player_name}", playerName);
+        formatted = PlaceholderStatics.askPapiForPlaceholders(formatted, joined);
+
+        try {
+            JsonElement element = new JsonParser().parse(formatted);
+            PacketPlayOutChat packet = new PacketPlayOutChat(IChatBaseComponent.ChatSerializer.a(element), ChatMessageType.CHAT, joined.getUniqueId());
+            Bukkit.getOnlinePlayers().stream().map(player -> ((CraftPlayer) player)).forEach(player -> player.getHandle().playerConnection.sendPacket(packet));
+        } catch (Exception x ){
+            log.error("Couldn't send join message", x);
+        } finally {
+            Bukkit.getConsoleSender().sendMessage(
+                    String.format("§8{§aJoin§8} §f%s", playerName)
+            );
+        }
+        event.setJoinMessage("");
+    }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        Player quitter = event.getPlayer();
+        String playerName = event.getPlayer().getName();
+
+        String jsonFormat = ChatColor.translateAlternateColorCodes('&', this.quitFormat);
+        String formatted = jsonFormat
+                .replaceAll("(?i)\\{player_name}", playerName);
+        formatted = PlaceholderStatics.askPapiForPlaceholders(formatted, quitter);
+
+        try {
+            JsonElement element = new JsonParser().parse(formatted);
+            PacketPlayOutChat packet = new PacketPlayOutChat(IChatBaseComponent.ChatSerializer.a(element), ChatMessageType.CHAT, quitter.getUniqueId());
+            Bukkit.getOnlinePlayers().stream().map(player -> ((CraftPlayer) player)).forEach(player -> player.getHandle().playerConnection.sendPacket(packet));
+        } catch (Exception x ){
+            log.error("Couldn't send quit message", x);
+        } finally {
+            Bukkit.getConsoleSender().sendMessage(
+                    String.format("§8{§cQuit§8} §f%s", playerName)
+            );
+        }
+        event.setQuitMessage("");
+    }
+
+
 }

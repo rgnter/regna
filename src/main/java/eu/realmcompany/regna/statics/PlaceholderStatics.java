@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Placeholder API Statics
  */
-public class PapiStatics {
+public class PlaceholderStatics {
 
     /**
      *
@@ -22,5 +22,7 @@ public class PapiStatics {
         }
         return message;
     }
+
+
 
 }
