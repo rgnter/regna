@@ -1,0 +1,56 @@
+#
+# ██████╗ ███████╗ ██████╗ ███╗   ██╗ █████╗
+# ██╔══██╗██╔════╝██╔════╝ ████╗  ██║██╔══██╗
+# ██████╔╝█████╗  ██║  ███╗██╔██╗ ██║███████║
+# ██╔══██╗██╔══╝  ██║   ██║██║╚██╗██║██╔══██║
+# ██║  ██║███████╗╚██████╔╝██║ ╚████║██║  ██║
+# ╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═╝
+#
+# ASCII Shadow from http://patorjk.com/software/taag/
+#
+# Default configuration for Chat Service
+# Version:    ${version}
+# Build time: ${timestamp}
+# --
+#
+
+root:
+  emotes:
+    permission: ""
+    enabled: true
+    # Indicates that emote key is following
+    indicator: "\\"
+    listed:
+      what:
+        key: "what"
+        emote: "( •_•)"
+      ohyeah:
+        key: "ohyeah"
+        emote: "(￢‿￢ )"
+      yaay:
+        key: "yaay"
+        emote: "＼(￣▽￣)／"
+      blush:
+        key: "blush"
+        emote: "(≧ω≦)"
+      hiii:
+        # Override indicator
+        indicator: ""
+        key: "o/"
+        emote: "( ﾟ◡ﾟ)/"
+      overlord:
+        key: "overlord"
+        emote: "&f&kWWW &eOverlord &f&kEEE"
+        permission: "regna.admin"
+  ping:
+    permission: ""
+    enabled: true
+    indicator: "@"
+    color: "&e"
+    sound:
+      name: "BLOCK_NOTE_BLOCK_BELL"
+      volume: 1f
+      pitch: 1f
+  chat:
+    # JSON Chat format (Supports PAPI)
+    format: '{"text":"&7{player_name} &8\u2022 &f{message}"}'

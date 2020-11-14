@@ -1,0 +1,23 @@
+#
+# ██████╗ ███████╗ ██████╗ ███╗   ██╗ █████╗
+# ██╔══██╗██╔════╝██╔════╝ ████╗  ██║██╔══██╗
+# ██████╔╝█████╗  ██║  ███╗██╔██╗ ██║███████║
+# ██╔══██╗██╔══╝  ██║   ██║██║╚██╗██║██╔══██║
+# ██║  ██║███████╗╚██████╔╝██║ ╚████║██║  ██║
+# ╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═╝
+#
+# ASCII Shadow from http://patorjk.com/software/taag/
+#
+# Default configuration for regna
+# Version:    ${version}
+# Build time: ${timestamp}
+# --
+#
+
+game:
+  services:
+    # Game Services will be enabled
+    enabled: true
+  mechanics:
+    # Game Mechanics will be enabled
+    enabled: true

@@ -1,17 +1,20 @@
 package eu.realmcompany.regna.game.mechanics.magic.alchemy;
 
 import eu.realmcompany.regna.abstraction.game.AGameMechanic;
-import eu.realmcompany.regna.abstraction.game.GameMechanic;
-import eu.realmcompany.regna.game.RegnaGame;
+import eu.realmcompany.regna.game.mechanics.RegnaMechanics;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.jetbrains.annotations.NotNull;
 
-@GameMechanic("Alchemy")
 public class AlchemyMechanics extends AGameMechanic {
 
-    public AlchemyMechanics(@NotNull RegnaGame game) {
-        super(game);
+    /**
+     * Default constructor
+     *
+     * @param mechanics Game mechanics
+     */
+    public AlchemyMechanics(@NotNull RegnaMechanics mechanics) {
+        super(mechanics);
     }
 
     @Override

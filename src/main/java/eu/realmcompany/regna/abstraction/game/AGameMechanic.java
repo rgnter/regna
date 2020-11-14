@@ -1,60 +1,29 @@
 package eu.realmcompany.regna.abstraction.game;
 
 import eu.realmcompany.regna.RegnaKaryon;
-import eu.realmcompany.regna.abstraction.Abstracted;
-import eu.realmcompany.regna.abstraction.services.Service;
-import eu.realmcompany.regna.game.RegnaGame;
-import eu.realmcompany.regna.services.RegnaServices;
+import eu.realmcompany.regna.abstraction.AAbstract;
+import eu.realmcompany.regna.game.mechanics.RegnaMechanics;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.annotation.Annotation;
-import java.util.Objects;
+public abstract class AGameMechanic extends AAbstract {
 
-public abstract class AGameMechanic extends Abstracted {
+    @Getter
+    @Setter(AccessLevel.PROTECTED)
+    public String mechanicName;
 
-    /**
-     * Default constructor from superclass
-     * @param instance Instance of Karyon
-     */
-    public AGameMechanic(@NotNull RegnaKaryon instance) {
-        super(instance);
-    }
+    @Getter
+    @Setter(AccessLevel.PROTECTED)
+    public boolean doesTick;
 
     /**
      * Default constructor
-     * @param game Instance of Game
+     * @param mechanics Mechanics instance
      */
-    public AGameMechanic(@NotNull RegnaGame game) {
-        super(game.getInstance());
+    public AGameMechanic(@NotNull RegnaMechanics mechanics) {
+        super(mechanics.getRegna().getKaryon());
     }
 
-    /**
-     * Called once every tick
-     */
-    public void tick() {
-
-    }
-
-    /**
-     * @return Returns annotation data of this Game Mechanic
-     */
-    public @NotNull GameMechanic getAnnotationData() {
-        GameMechanic fromClass = this.getClass().getAnnotation(GameMechanic.class);
-        return Objects.requireNonNullElseGet(fromClass, () -> new GameMechanic() {
-            @Override
-            public Class<? extends Annotation> annotationType() {
-                return GameMechanic.class;
-            }
-
-            @Override
-            public @NotNull String value() {
-                return getClass().getSimpleName();
-            }
-
-            @Override
-            public boolean tickable() {
-                return false;
-            }
-        });
-    }
 }

@@ -1,17 +1,20 @@
 package eu.realmcompany.regna;
 
-import eu.realmcompany.regna.game.RegnaGame;
+import eu.realmcompany.regna.game.Regna;
 import eu.realmcompany.regna.game.mcdev.PacketStatics;
-import eu.realmcompany.regna.services.RegnaServices;
-import eu.realmcompany.regna.storage.StorageManager;
+import eu.realmcompany.regna.providers.database.DatabaseProvider;
+import eu.realmcompany.regna.providers.storage.StorageProvider;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
+import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
 @Log4j2(topic = "RegnaKaryon")
 public class RegnaKaryon extends JavaPlugin implements Listener {
@@ -19,20 +22,20 @@ public class RegnaKaryon extends JavaPlugin implements Listener {
     public static RegnaKaryon instance;
 
     @Getter
-    private final StorageManager storageManager;
+    private final DatabaseProvider database;
+    @Getter
+    private final StorageProvider storage;
 
     @Getter
-    private final RegnaServices services;
-    @Getter
-    private final RegnaGame game;
+    private final Regna regna;
 
     {
-        log.info("Instancing...");
-        instance = this;
-        storageManager = new StorageManager(this);
+        log.info("Instancing providers....");
+        this.storage = new StorageProvider(this);
+        this.database = new DatabaseProvider(this);
 
-        services = new RegnaServices(this);
-        game = new RegnaGame(this);
+        log.info("Instancing game...");
+        this.regna = new Regna(this);
     }
 
 
@@ -41,8 +44,7 @@ public class RegnaKaryon extends JavaPlugin implements Listener {
         super.onLoad();
         log.info("Constructing Karyon...");
 
-        this.services.construct();
-        this.game.construct();
+        this.regna.construct();
     }
 
     @Override
@@ -52,29 +54,16 @@ public class RegnaKaryon extends JavaPlugin implements Listener {
 
         Bukkit.getPluginManager().registerEvents(this, this);
 
-        this.services.initialize();
-        this.game.initialize();
-
-        try {
-            this.storageManager.provideJson("test.json", true);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            this.storageManager.provideYaml("test.yaml", true);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        this.regna.initialize();
     }
 
     @Override
     public void onDisable() {
         super.onDisable();
 
-        log.info("Terminating Karyon...");
-        this.game.terminate();
-        this.services.terminate();
+        this.regna.terminate();
     }
+
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onJoin(PlayerJoinEvent event) {
