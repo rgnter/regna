@@ -1,7 +1,7 @@
 package eu.realmcompany.regna.services.storage;
 
-import eu.realmcompany.regna.abstraction.AService;
-import eu.realmcompany.regna.abstraction.Service;
+import eu.realmcompany.regna.abstraction.services.AService;
+import eu.realmcompany.regna.abstraction.services.Service;
 import eu.realmcompany.regna.services.RegnaServices;
 import org.jetbrains.annotations.NotNull;
 

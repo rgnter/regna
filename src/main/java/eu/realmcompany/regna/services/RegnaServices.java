@@ -1,8 +1,9 @@
 package eu.realmcompany.regna.services;
 
 import eu.realmcompany.regna.RegnaKaryon;
-import eu.realmcompany.regna.abstraction.AService;
-import eu.realmcompany.regna.abstraction.Service;
+import eu.realmcompany.regna.abstraction.services.AService;
+import eu.realmcompany.regna.abstraction.services.Service;
+
 import eu.realmcompany.regna.diagnostics.timings.Timer;
 import eu.realmcompany.regna.services.admin.AdminService;
 import eu.realmcompany.regna.services.chat.ChatService;
@@ -22,7 +23,7 @@ import java.util.Optional;
 public class RegnaServices {
 
     @Getter
-    private RegnaKaryon instance;
+    private final RegnaKaryon instance;
 
     private final Map<Class<? extends AService>, AService> services = new HashMap<>();
 
@@ -33,6 +34,7 @@ public class RegnaServices {
      */
     public RegnaServices(RegnaKaryon instance) {
         this.instance = instance;
+
         registerService(ChatService.class);
         registerService(AdminService.class);
     }
@@ -47,7 +49,7 @@ public class RegnaServices {
             Timer timer = Timer.timings().start();
             try {
                 service.construct();
-                log.info("Service §e{}§r constructed. Took §a{}§rms", serviceName, timer.stop().resultMilli());
+               log.info("Service §e{}§r constructed. Took §a{}§rms", serviceName, timer.stop().resultMilli());
             } catch (Exception x) {
                 log.error("Failed to construct service §e{}§r", serviceName, x);
             }
@@ -60,10 +62,11 @@ public class RegnaServices {
         this.services.forEach((serviceClass, service) -> {
             final Service data = serviceClass.getAnnotation(Service.class);
             String serviceName = data != null ? data.value() : serviceClass.getSimpleName();
+
             Timer timer = Timer.timings().start();
             try {
                 service.initialize();
-                log.info("Service §e{}§r initialized. Took §a{}§rms", serviceName, timer.stop().resultMilli());
+               log.info("Service §e{}§r initialized. Took §a{}§rms", serviceName, timer.stop().resultMilli());
             } catch (Exception x) {
                 log.error("Failed to initialize service §e{}§r", serviceName, x);
             }
@@ -76,6 +79,7 @@ public class RegnaServices {
         this.services.forEach((serviceClass, service) -> {
             final Service data = serviceClass.getAnnotation(Service.class);
             String serviceName = data != null ? data.value() : serviceClass.getSimpleName();
+
             Timer timer = Timer.timings().start().start();
             try {
                 service.terminate();
@@ -131,7 +135,7 @@ public class RegnaServices {
         } catch (InstantiationException e) {
             log.error("Couldn't create instance from default constructor for §e{}§r", serviceName, e);
         } catch (InvocationTargetException e) {
-            log.error("Service §e{}§r thrown exception", serviceName, e, e.getTargetException());
+            log.error("Service §e{}§r thrown exception", serviceName, e.getTargetException());
         }
 
         return false;

@@ -1,7 +1,7 @@
 package eu.realmcompany.regna.services.chat;
 
-import eu.realmcompany.regna.abstraction.AService;
-import eu.realmcompany.regna.abstraction.Service;
+import eu.realmcompany.regna.abstraction.services.AService;
+import eu.realmcompany.regna.abstraction.services.Service;
 import eu.realmcompany.regna.services.RegnaServices;
 import net.minecraft.server.v1_16_R2.ChatMessageType;
 import net.minecraft.server.v1_16_R2.IChatBaseComponent;
