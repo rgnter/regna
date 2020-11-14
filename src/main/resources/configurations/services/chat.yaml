@@ -42,7 +42,7 @@ root:
         key: "overlord"
         emote: "&f&kWWW &eOverlord &f&kEEE"
         permission: "regna.admin"
-  ping:
+  mention:
     permission: ""
     enabled: true
     indicator: "@"

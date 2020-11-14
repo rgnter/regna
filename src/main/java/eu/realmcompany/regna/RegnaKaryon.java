@@ -6,15 +6,12 @@ import eu.realmcompany.regna.providers.database.DatabaseProvider;
 import eu.realmcompany.regna.providers.storage.StorageProvider;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.jetbrains.annotations.NotNull;
 
 @Log4j2(topic = "RegnaKaryon")
 public class RegnaKaryon extends JavaPlugin implements Listener {

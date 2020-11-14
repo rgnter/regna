@@ -96,7 +96,8 @@ public abstract class AStore {
      */
     public void provideDefault() throws Exception {
         if (hasDefault) {
-            create();
+            if(!file.exists())
+                create();
             // write default file
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(instance.getResource(path)), StandardCharsets.UTF_8));
                  BufferedWriter writer = new BufferedWriter(new FileWriter(this.file, StandardCharsets.UTF_8))) {

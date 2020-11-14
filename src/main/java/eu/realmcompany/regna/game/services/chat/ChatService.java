@@ -8,6 +8,7 @@ import eu.realmcompany.regna.game.services.RegnaServices;
 import eu.realmcompany.regna.providers.storage.data.FriendlyData;
 import eu.realmcompany.regna.providers.storage.store.AStore;
 import eu.realmcompany.regna.statics.PapiStatics;
+import eu.realmcompany.regna.statics.PermissionStatics;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import net.minecraft.server.v1_16_R2.ChatMessageType;
@@ -43,13 +44,13 @@ public class ChatService extends AGameService {
     private boolean emotesEnabled = true;
     private Permission emotesPermission = null;
 
-    private boolean pingEnabled = true;
-    private String pingIndicator = "@";
-    private String pingColor = "&e";
-    private Permission pingPermission = null;
-    private Sound pingSound = Sound.BLOCK_NOTE_BLOCK_BELL;
-    private float pingVolume = 1f;
-    private float pingPitch = 1f;
+    private boolean mentionEnabled = true;
+    private String mentionIndicator = "@";
+    private String mentionColor = "&e";
+    private Permission mentionPermission = null;
+    private Sound mentionSound = Sound.BLOCK_NOTE_BLOCK_BELL;
+    private float mentionVolume = 1f;
+    private float mentionPitch = 1f;
 
     private final Map<String, Pair<String, Permission>> emotes = new HashMap<>();
 
@@ -87,10 +88,10 @@ public class ChatService extends AGameService {
         // emotes
         this.emotesEnabled = this.config.getBool("root.emotes.enabled", true);
         if (this.emotesEnabled) {
-            if (this.config.isSet("root.emotes.permission")) {
-                this.emotesPermission = new Permission(this.config.getString("root.emotes.permission", "this_will_never_happen"));
+            this.emotesPermission = PermissionStatics.permissionFromString(this.config.getString("root.emotes.permission"));
+            if (this.emotesPermission != null)
                 log.debug("Permission for emotes: " + this.emotesPermission.getName());
-            }
+
 
             String defaultEmojiIndicator = this.config.getString("root.emotes.indicator", "\\");
             for (String configName : this.config.getKeys("root.emotes.listed")) {
@@ -98,9 +99,7 @@ public class ChatService extends AGameService {
                 String emote = this.config.getString("root.emotes.listed." + configName + ".emote");
 
                 // permission
-                Permission perm = null;
-                if (this.config.isSet("root.emotes.listed." + configName + ".permission"))
-                    perm = new Permission(this.config.getString("root.emotes.listed." + configName + ".permission", "this_will_never_happen"));
+                Permission perm = PermissionStatics.permissionFromString(this.config.getString("root.emotes.listed." + configName + ".permission"));
 
                 // override indicator if set
                 String indicator = defaultEmojiIndicator;
@@ -115,23 +114,23 @@ public class ChatService extends AGameService {
         } else
             log.info("Emotes are disabled.");
 
-        // ping
-        this.pingEnabled = this.config.getBool("root.ping.enabled", true);
-        if (this.pingEnabled) {
-            if (this.config.isSet("root.ping.permission")) {
-                this.pingPermission = new Permission(this.config.getString("root.ping.permission", "this_will_never_happen"));
-                log.debug("Permission for pings: " + this.emotesPermission.getName());
-            }
-            this.pingIndicator = this.config.getString("root.ping.indicator", "@");
-            this.pingColor = this.config.getString("root.ping.color", "&a");
+        // mention
+        this.mentionEnabled = this.config.getBool("root.mention.enabled", true);
+        if (this.mentionEnabled) {
+            this.mentionPermission = PermissionStatics.permissionFromString(this.config.getString("root.mention.permission", "this_will_never_happen"));
+            if (this.mentionPermission != null)
+                log.debug("Permission for mentions: " + this.mentionPermission.getName());
+
+            this.mentionIndicator = this.config.getString("root.mention.indicator", "@");
+            this.mentionColor = this.config.getString("root.mention.color", "&a");
 
             try {
-                this.pingSound = Sound.valueOf(this.config.getString("root.ping.sound.name", "BLOCK_NOTE_BLOCK_BELL").toUpperCase());
+                this.mentionSound = Sound.valueOf(this.config.getString("root.mention.sound.name", "BLOCK_NOTE_BLOCK_BELL").toUpperCase());
             } catch (Exception x) {
-                log.error("Couldn't parse SOUND for ping. Using default.");
+                log.error("Couldn't parse SOUND for mention. Using default.");
             }
-            this.pingVolume = this.config.getFloat("root.ping.sound.volume", 1f);
-            this.pingPitch = this.config.getFloat("root.ping.sound.pitch", 1f);
+            this.mentionVolume = this.config.getFloat("root.mention.sound.volume", 1f);
+            this.mentionPitch = this.config.getFloat("root.mention.sound.pitch", 1f);
 
         } else
             log.info("Pings are disabled.");
@@ -149,12 +148,12 @@ public class ChatService extends AGameService {
         String message = event.getMessage();
 
         // PING
-        if (pingEnabled)
-            if (pingPermission == null || sender.hasPermission(pingPermission))
+        if (mentionEnabled)
+            if (mentionPermission == null || sender.hasPermission(mentionPermission))
                 for (Player player : getOnlinePlayers()) {
-                    if (message.toLowerCase().contains(pingIndicator + player.getName().toLowerCase())) {
-                        message = message.replaceAll("(?i)" + pingIndicator + player.getName(), pingColor + pingIndicator + playerName + "&r");
-                        player.playSound(player.getLocation(), pingSound, pingVolume, pingPitch);
+                    if (message.toLowerCase().contains(mentionIndicator + player.getName().toLowerCase())) {
+                        message = message.replaceAll("(?i)" + mentionIndicator + player.getName(), mentionColor + mentionIndicator + playerName + "&r");
+                        player.playSound(player.getLocation(), mentionSound, mentionVolume, mentionPitch);
                     }
                 }
         // EMOTES
