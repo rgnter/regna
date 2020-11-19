@@ -6,6 +6,9 @@ import eu.realmcompany.regna.game.mechanics.RegnaMechanics;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import net.minecraft.server.v1_16_R3.MinecraftServer;
+import org.bukkit.Bukkit;
+import org.bukkit.craftbukkit.v1_16_R3.CraftServer;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AGameMechanic extends AAbstract {
@@ -16,7 +19,9 @@ public abstract class AGameMechanic extends AAbstract {
 
     @Getter
     @Setter(AccessLevel.PROTECTED)
-    public boolean doesTick;
+    public boolean tickable;
+
+    protected MinecraftServer nmsServer;
 
     /**
      * Default constructor
@@ -24,6 +29,15 @@ public abstract class AGameMechanic extends AAbstract {
      */
     public AGameMechanic(@NotNull RegnaMechanics mechanics) {
         super(mechanics.getRegna().getKaryon());
+        this.nmsServer = mechanics.getNmsServer();
     }
+
+
+    /**
+     * Tick
+     */
+    public abstract void tick();
+
+
 
 }

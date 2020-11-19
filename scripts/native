@@ -5,6 +5,6 @@ else
     mkdir scripts
     mkdir scripts/tmp
     echo "Downloading & installing native jar"
-    curl https://yivesmirror.com/files/paper/Paper-1.16.3-latest.jar --output "$FILE"
-    mvn install:install-file -Dfile="$FILE" -DgroupId="com.destroystokyo.paper" -DartifactId="paper-server" -Dversion="1.16.3" -Dpackaging="jar"
+    curl https://yivesmirror.com/files/paper/Paper-1.16.4-latest.jar --output "$FILE"
+    mvn install:install-file -Dfile="$FILE" -DgroupId="com.destroystokyo.paper" -DartifactId="paper-server" -Dversion="1.16.4" -Dpackaging="jar"
 fi

@@ -13,7 +13,6 @@ import org.jetbrains.annotations.NotNull;
 @Log4j2(topic = "Regna")
 public class Regna {
 
-
     @Getter
     private final @NotNull RegnaKaryon karyon;
 
@@ -41,25 +40,33 @@ public class Regna {
         Timer timer = Timer.timings().start();
         try {
             this.regnaConfig = karyon.getStorage().provideYaml("configurations/regna.yaml", true);
-            if (this.regnaConfig != null) {
-                FriendlyData config = this.regnaConfig.getData();
 
-                this.servicesEnabled = config.getBool("game.services.enabled", true);
-                this.mechanicsEnabled = config.getBool("game.mechanics.enabled", true);
-            }
+            FriendlyData config = this.regnaConfig.getData();
+            this.servicesEnabled  = config.getBool("game.services.enabled" , true);
+            this.mechanicsEnabled = config.getBool("game.mechanics.enabled", true);
         } catch (Exception e) {
             log.warn("Couldn't load regna configuration!");
         }
 
-        if (servicesEnabled) {
+        if (this.servicesEnabled) {
             log.info("Instancing Regna Services...");
-            this.services = new RegnaServices(this);
+            try {
+                this.services = new RegnaServices(this);
+            } catch (Exception x) {
+                log.error("Caught exception when instancing  RegnaServices", x);
+                this.servicesEnabled = false;
+            }
         } else
             log.warn("Services disabled!");
 
-        if (mechanicsEnabled) {
+        if (this.mechanicsEnabled) {
             log.info("Instancing Regna Mechanics...");
+            try {
             this.mechanics = new RegnaMechanics(this);
+            } catch (Exception x) {
+                log.error("Caught exception when instancing RegnaMechanics", x);
+                this.mechanicsEnabled = false;
+            }
         } else
             log.warn("Services disabled!");
 
@@ -71,9 +78,10 @@ public class Regna {
     public void construct() {
         Timer timer = Timer.timings().start();
         log.info("Constructing §eRegna§r");
-        if (servicesEnabled)
-            services.construct();
-
+        if (this.servicesEnabled)
+            this.services.construct();
+        if (this.mechanicsEnabled)
+            this.mechanics.construct();
 
         timer.stop();
         log.info("Constructing §eRegna§r took §a{}ms", timer.resultMilli());
@@ -82,9 +90,10 @@ public class Regna {
     public void initialize() {
         Timer timer = Timer.timings().start();
         log.info("Initializing §eRegna§r");
-        if (servicesEnabled)
-            services.initialize();
-
+        if (this.servicesEnabled)
+            this.services.initialize();
+        if (this.mechanicsEnabled)
+            this.mechanics.initialize();
 
         timer.stop();
         log.info("Initializing §eRegna§r took §a{}ms", timer.resultMilli());
@@ -93,8 +102,11 @@ public class Regna {
     public void terminate() {
         Timer timer = Timer.timings().start();
         log.info("Terminating §eRegna§r");
-        if (servicesEnabled)
-            services.terminate();
+        this.services.initialize();
+        if (this.mechanicsEnabled)
+            this.mechanics.terminate();
+        if (this.servicesEnabled)
+            this.services.terminate();
 
         timer.stop();
         log.info("Terminating §eRegna§r took §a{}ms", timer.resultMilli());

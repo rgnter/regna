@@ -1,6 +1,6 @@
 package eu.realmcompany.regna.game.mcdev.network;
 
-import net.minecraft.server.v1_16_R2.*;
+import net.minecraft.server.v1_16_R3.*;
 
 public class RealmPlayerConnection extends PlayerConnection {
 

@@ -55,7 +55,7 @@
         <dependency>
             <groupId>com.destroystokyo.paper</groupId>
             <artifactId>paper-server</artifactId>
-            <version>1.16.3</version>
+            <version>1.16.4</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

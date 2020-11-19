@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-@Log4j2(topic = "RegnaServices")
+@Log4j2(topic = "Regna Services")
 public class RegnaServices {
 
     @Getter
@@ -28,7 +28,7 @@ public class RegnaServices {
     /**
      * Default constructor
      *
-     * @param regna Instance of Karyon
+     * @param regna Regna instance
      */
     public RegnaServices(@NotNull Regna regna) {
         this.regna = regna;

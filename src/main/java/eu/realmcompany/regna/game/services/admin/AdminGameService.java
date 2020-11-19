@@ -2,17 +2,19 @@ package eu.realmcompany.regna.game.services.admin;
 
 import eu.realmcompany.regna.abstraction.game.AGameService;
 import eu.realmcompany.regna.game.services.RegnaServices;
-import net.minecraft.server.v1_16_R2.EntityPlayer;
-import net.minecraft.server.v1_16_R2.NBTTagCompound;
-import net.minecraft.server.v1_16_R2.PlayerInteractManager;
+import net.minecraft.server.v1_16_R3.*;
+import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_16_R2.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -235,6 +237,112 @@ public class AdminGameService extends AGameService {
             }
         });
 
+        Bukkit.getServer().getCommandMap().register("regna", new Command("gamemode") {
+            {
+                setAliases(Arrays.asList("gm", "gmc", "gms", "gma", "gmsp"));
+            }
+            @Override
+            public boolean execute(@NotNull CommandSender sender, @NotNull String alias, @NotNull String[] args) {
+                if(!sender.hasPermission("regna.gamemode")) {
+                    sender.sendMessage("§cNie.");
+                    return true;
+                }
+
+                GameMode mode = null;
+
+                if (alias.equalsIgnoreCase("gmc")) mode = GameMode.CREATIVE;
+                else if (alias.equalsIgnoreCase("gms")) mode = GameMode.SURVIVAL;
+                else if (alias.equalsIgnoreCase("gma")) mode = GameMode.ADVENTURE;
+                else if (alias.equalsIgnoreCase("gmsp")) mode = GameMode.SPECTATOR;
+
+                // read from arguments if already not specified
+                if(mode == null)
+                if (args.length > 0) {
+                        try {
+                            String modeName = args[0].toUpperCase();
+                            args = (String[]) ArrayUtils.remove(args, 0);
+
+                            // maybe its shortcut? try
+                            switch (modeName) {
+                                case "C":
+                                case "1":
+                                case "CREATIVE":
+                                    mode = GameMode.CREATIVE;
+                                    break;
+                                case "A":
+                                case "2":
+                                case "ADVENTURE":
+                                    mode = GameMode.ADVENTURE;
+                                    break;
+                                case "S":
+                                case "0":
+                                case "SURVIVAL":
+                                    mode = GameMode.SURVIVAL;
+                                    break;
+                                case "SP":
+                                case "3":
+                                case "SPECTATOR":
+                                case "SPEC":
+                                    mode = GameMode.SPECTATOR;
+                                    break;
+                            }
+
+                            // well what if not
+                            if (mode == null)
+                                mode = GameMode.valueOf(modeName);
+
+                        } catch (IllegalArgumentException x) {
+                            sender.sendMessage("§c# §fUnknown Gamemode '" + args[0] + "'");
+                            return true;
+                        }
+                }
+
+                if (mode == null) {
+                    sender.sendMessage("§c# §fYou must specify gamemode");
+                    return true;
+
+                }
+
+                if(args.length > 0) {
+                    String targetName = args[0];
+                    Player target = Bukkit.getPlayer(targetName);
+
+                    if(!sender.hasPermission("regna.gamemode.others")) {
+                        sender.sendMessage("§c# §fYou don't have enough permissions.");
+                        return true;
+                    }
+
+                    if(target != null) {
+
+                        if (target.getGameMode().equals(mode)) {
+                            sender.sendMessage("§c# §fThey already have this gamemode! Chumaj:D");
+                            return true;
+                        }
+
+                        Bukkit.getConsoleSender().sendMessage("§8{§fAdmin§8} §7Player '§a" + sender.getName() + "§r' has changed §a" + targetName + "'s§r gamemode to '§e" + mode.name().toLowerCase() + "§r' from '§e" + target.getGameMode().name().toLowerCase() + "§r'");
+                        target.setGameMode(mode);
+                        sender.sendMessage("§a# §f Gamemode of §e" + targetName + "§r changed to '§e" + mode.name().toLowerCase() + "§r'");
+                        return true;
+                    } else {
+                        sender.sendMessage("§c# §fInvalid player!");
+                        return true;
+                    }
+                }
+                Player p = (Player) sender;
+
+                if (p.getGameMode().equals(mode)) {
+                    sender.sendMessage("§c# §fYou already are in this gamemode! Chumaj:D");
+                    return true;
+                }
+
+                Bukkit.getConsoleSender().sendMessage("§8{§fAdmin§8}§7 Player '§e" + p.getName() + "§r' has changed his gamemode to '§e" + mode.name().toLowerCase() + "§r' from '§e" + p.getGameMode().name().toLowerCase() + "§r'");
+                p.setGameMode(mode);
+                sender.sendMessage("§a# §fGamemode changed to '§e" + mode.name().toLowerCase() + "§f'");
+
+                return true;
+            }
+        });
+
 
         Bukkit.getServer().getCommandMap().register("regna", new Command("test") {
             @Override
@@ -245,14 +353,16 @@ public class AdminGameService extends AGameService {
                 NBTTagCompound data = new NBTTagCompound();
                 me.save(data);
                 EntityPlayer player = new EntityPlayer(me.server, me.getWorldServer(), me.getProfile(), new PlayerInteractManager(me.getWorldServer()));
+                BlockPosition front = me.getPointInFront(2);
+                player.setPositionRotation(front, me.yaw - 180, me.pitch);
 
 
-                System.out.println(player.getPositionVector());
                 me.server.getPlayerList().sendAll(player.P());
-
                 return true;
             }
         });
+
+
     }
 
     @Override
