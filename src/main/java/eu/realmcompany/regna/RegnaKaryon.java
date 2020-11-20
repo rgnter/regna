@@ -1,7 +1,7 @@
 package eu.realmcompany.regna;
 
 import eu.realmcompany.regna.game.Regna;
-import eu.realmcompany.regna.game.mcdev.PacketStatics;
+import eu.realmcompany.regna.game.mcdev.PktStatics;
 import eu.realmcompany.regna.providers.database.DatabaseProvider;
 import eu.realmcompany.regna.providers.storage.StorageProvider;
 import lombok.Getter;
@@ -64,7 +64,7 @@ public class RegnaKaryon extends JavaPlugin implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onJoin(PlayerJoinEvent event) {
-       PacketStatics.setRealmConnection(event.getPlayer());
+       PktStatics.setRealmConnection(event.getPlayer());
     }
 
 

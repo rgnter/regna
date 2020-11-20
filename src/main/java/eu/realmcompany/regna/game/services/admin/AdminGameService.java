@@ -1,6 +1,8 @@
 package eu.realmcompany.regna.game.services.admin;
 
 import eu.realmcompany.regna.abstraction.game.AGameService;
+import eu.realmcompany.regna.game.mcdev.PktStatics;
+import eu.realmcompany.regna.game.mechanics.morph.model.MorphEntity;
 import eu.realmcompany.regna.game.services.RegnaServices;
 import net.minecraft.server.v1_16_R3.*;
 import org.apache.commons.lang.ArrayUtils;
@@ -343,21 +345,45 @@ public class AdminGameService extends AGameService {
             }
         });
 
+        Bukkit.getServer().getCommandMap().register("regna", new Command("posemymorph") {
+            @Override
+            public boolean execute(@NotNull CommandSender commandSender, @NotNull String s, @NotNull String[] args) {
+                Player executor = ((Player) commandSender);
+                EntityPlayer nmsPlayer = PktStatics.getNmsPlayer(executor);
+                EntityPose pose = null;
+                try {
+                   pose = EntityPose.valueOf(args[0].toUpperCase());
+                } catch (Exception x) {
+                    commandSender.sendMessage("§cBad pose");
+                }
+                if(pose == null)
+                    return true;
+
+                MorphEntity morphed = getKaryon().getRegna().getMechanics().getMorph().getMorphedPlayers().get(executor.getUniqueId());
+                morphed.getMorph().setPose(pose);
+                morphed.handleUpdate();
+                return true;
+            }
+
+            @Override
+            public @NotNull List<String> tabComplete(@NotNull CommandSender sender, @NotNull String alias, @NotNull String[] args) throws IllegalArgumentException {
+                return Arrays.stream(EntityPose.values()).map(EntityPose::name).collect(Collectors.toList());
+            }
+        });
 
         Bukkit.getServer().getCommandMap().register("regna", new Command("test") {
             @Override
             public boolean execute(@NotNull CommandSender commandSender, @NotNull String s, @NotNull String[] strings) {
+                Player executor = ((Player) commandSender);
+                EntityPlayer nmsPlayer = PktStatics.getNmsPlayer(executor);
 
-                EntityPlayer me = ((CraftPlayer) commandSender).getHandle();
+                EntityInsentient entity = EntityTypes.ZOMBIE.create(PktStatics.getNmsWorldServer(executor.getWorld()));
+                entity.setPose(EntityPose.CROUCHING);
+                entity.setPositionRotation(new BlockPosition(nmsPlayer.getPositionVector()), 0, 0);
 
-                NBTTagCompound data = new NBTTagCompound();
-                me.save(data);
-                EntityPlayer player = new EntityPlayer(me.server, me.getWorldServer(), me.getProfile(), new PlayerInteractManager(me.getWorldServer()));
-                BlockPosition front = me.getPointInFront(2);
-                player.setPositionRotation(front, me.yaw - 180, me.pitch);
+                nmsPlayer.playerConnection.sendPacket(entity.P());
 
-
-                me.server.getPlayerList().sendAll(player.P());
+                nmsPlayer.playerConnection.sendPacket(new PacketPlayOutEntityMetadata(entity.getId(), entity.getDataWatcher(), true));
                 return true;
             }
         });

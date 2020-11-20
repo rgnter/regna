@@ -4,6 +4,7 @@ import eu.realmcompany.regna.RegnaKaryon;
 import eu.realmcompany.regna.diagnostics.timings.Timer;
 import eu.realmcompany.regna.game.Regna;
 import eu.realmcompany.regna.game.mechanics.magic.alchemy.AlchemyMechanics;
+import eu.realmcompany.regna.game.mechanics.morph.MorphMechanics;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import net.minecraft.server.v1_16_R3.MinecraftServer;
@@ -20,8 +21,10 @@ public class RegnaMechanics {
     @Getter
     private final MinecraftServer nmsServer;
 
+    @Getter
     private AlchemyMechanics alchemy;
-
+    @Getter
+    private MorphMechanics morph;
     /**
      * Default constructor
      * @param regna Regna instance
@@ -33,11 +36,18 @@ public class RegnaMechanics {
 
 
     public void construct() {
-        alchemy = new AlchemyMechanics(this);
+        this.alchemy = new AlchemyMechanics(this);
+        this.morph = new MorphMechanics(this);
         log.info("Constructing Regna Mechanics");
 
         try {
             this.alchemy.construct();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            this.morph.construct();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -52,9 +62,21 @@ public class RegnaMechanics {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        try {
+            this.morph.initialize();
+            // register tickable
+            nmsServer.b(() -> this.morph.tick());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void terminate() {
+        try {
+            this.morph.terminate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         try {
             this.alchemy.terminate();
         } catch (Exception e) {
