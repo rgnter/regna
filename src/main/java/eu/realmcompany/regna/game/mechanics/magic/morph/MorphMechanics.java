@@ -1,9 +1,10 @@
-package eu.realmcompany.regna.game.mechanics.morph;
+package eu.realmcompany.regna.game.mechanics.magic.morph;
 
+import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent;
 import eu.realmcompany.regna.abstraction.game.AGameMechanic;
 import eu.realmcompany.regna.game.mcdev.PktStatics;
 import eu.realmcompany.regna.game.mechanics.RegnaMechanics;
-import eu.realmcompany.regna.game.mechanics.morph.model.MorphEntity;
+import eu.realmcompany.regna.game.mechanics.magic.morph.model.MorphEntity;
 import lombok.extern.log4j.Log4j2;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Bukkit;
@@ -13,10 +14,8 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -52,47 +51,51 @@ public class MorphMechanics extends AGameMechanic {
 
     /**
      * Morphs player
+     *
      * @param player Player to morph
      * @param type   Type of mob to morph
      * @return Success/Failure
      */
-    public boolean morphPlayer(@NotNull Player player, @NotNull String type) {
-        if(this.morphedPlayers.containsKey(player.getUniqueId()))
+    public MorphEntity morphPlayer(@NotNull Player player, @NotNull String type) {
+        if (this.morphedPlayers.containsKey(player.getUniqueId()))
             demorphPlayer(player);
 
         EntityPlayer nmsPlayer = PktStatics.getNmsPlayer(player);
 
         var opt = EntityTypes.getByName(type);
-        if(opt.isEmpty()) {
+        if (opt.isEmpty()) {
             log.warn("Selected entity doesn't exist ({}).", type);
-            return false;
+            return null;
         }
         Entity selected = opt.get().create(nmsPlayer.getWorld());
-        if(!(selected instanceof EntityInsentient)) {
+        if (!(selected instanceof EntityInsentient)) {
             log.warn("Selected entity is not Living Entity ({}).", type);
-            return false;
+            return null;
         }
         EntityInsentient insentient = (EntityInsentient) selected;
         insentient.setNoAI(true);
 
-        var morphed = new MorphEntity(nmsPlayer.getUniqueID(), (EntityInsentient) selected);
-        morphed.handleTeleport(player.getLocation());
+        var morphed = new MorphEntity(nmsPlayer.getUniqueID(), nmsPlayer, (EntityInsentient) selected, getKaryon());
+        morphed.syncPosition(player.getLocation(), nmsPlayer.getHeadRotation());
+
 
         Bukkit.getOnlinePlayers().stream().filter(onlinePlayer -> !onlinePlayer.getUniqueId().equals(player.getUniqueId())).forEach(morphed::showFor);
         morphed.handleUpdate();
-
+        morphed.handleTeleport(player.getLocation(), nmsPlayer.getHeadRotation());
+        morphed.syncEquipment();
 
         this.morphedPlayers.put(nmsPlayer.getUniqueID(), morphed);
-        return true;
+        return morphed;
     }
 
     /**
      * Demorphs player
+     *
      * @param player Player to demorph
      * @return Success/Failure
      */
     public boolean demorphPlayer(@NotNull Player player) {
-        if(!this.morphedPlayers.containsKey(player.getUniqueId()))
+        if (!this.morphedPlayers.containsKey(player.getUniqueId()))
             return false;
         MorphEntity morph = this.morphedPlayers.remove(player.getUniqueId());
         Bukkit.getOnlinePlayers().stream().filter(onlinePlayer -> !onlinePlayer.getUniqueId().equals(player.getUniqueId())).forEach(morph::hideFor);
@@ -108,14 +111,15 @@ public class MorphMechanics extends AGameMechanic {
     public void onPlayerJoin(PlayerJoinEvent event) {
         // show all existing morphs
         this.morphedPlayers.forEach((player, morph) -> {
-            if(!player.equals(event.getPlayer().getUniqueId()))
+            if (!player.equals(event.getPlayer().getUniqueId())) {
                 morph.showFor(event.getPlayer());
+            }
         });
     }
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        if(isMorphed(event.getPlayer()))
+        if (isMorphed(event.getPlayer()))
             demorphPlayer(event.getPlayer());
     }
 
@@ -123,7 +127,7 @@ public class MorphMechanics extends AGameMechanic {
     public void onPlayerMove(PlayerMoveEvent event) {
         UUID owner = event.getPlayer().getUniqueId();
         EntityPlayer player = PktStatics.getNmsPlayer(event.getPlayer());
-        if(!this.morphedPlayers.containsKey(owner))
+        if (!this.morphedPlayers.containsKey(owner))
             return;
 
         MorphEntity morphed = this.morphedPlayers.get(owner);
@@ -133,11 +137,14 @@ public class MorphMechanics extends AGameMechanic {
     @EventHandler
     public void onPlayerTeleport(PlayerTeleportEvent event) {
         UUID owner = event.getPlayer().getUniqueId();
-        if(!this.morphedPlayers.containsKey(owner))
+        if (!this.morphedPlayers.containsKey(owner))
+            return;
+        EntityPlayer nmsOwner = PktStatics.getNmsPlayer(owner);
+        if (nmsOwner == null)
             return;
 
         MorphEntity morphed = this.morphedPlayers.get(owner);
-        morphed.handleTeleport(event.getTo());
+        morphed.handleTeleport(event.getTo(), nmsOwner.getHeadRotation());
     }
 
     @EventHandler
@@ -149,10 +156,11 @@ public class MorphMechanics extends AGameMechanic {
     @EventHandler
     public void onPlayerCrouch(PlayerToggleSneakEvent event) {
         UUID owner = event.getPlayer().getUniqueId();
-        if(!this.morphedPlayers.containsKey(owner))
+        if (!this.morphedPlayers.containsKey(owner))
             return;
 
         MorphEntity morphed = this.morphedPlayers.get(owner);
+        System.out.println(event.getPlayer().isSneaking());
         morphed.getMorph().setPose(event.getPlayer().isSneaking() ? EntityPose.CROUCHING : EntityPose.STANDING);
         morphed.handleUpdate();
     }
@@ -160,10 +168,10 @@ public class MorphMechanics extends AGameMechanic {
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         UUID owner = event.getPlayer().getUniqueId();
-        if(!this.morphedPlayers.containsKey(owner))
+        if (!this.morphedPlayers.containsKey(owner))
             return;
 
-        if(event.getAction().equals(Action.LEFT_CLICK_AIR) || event.getAction().equals(Action.LEFT_CLICK_BLOCK) || event.getClickedBlock() != null) {
+        if (event.getAction().equals(Action.LEFT_CLICK_AIR) || event.getAction().equals(Action.LEFT_CLICK_BLOCK) || event.getClickedBlock() != null) {
             MorphEntity morphed = this.morphedPlayers.get(owner);
             PacketPlayOutAnimation anm = new PacketPlayOutAnimation(morphed.getMorph(), 0);
             PktStatics.sendPacketToAll(anm, owner);
@@ -171,13 +179,47 @@ public class MorphMechanics extends AGameMechanic {
     }
 
     @EventHandler
+    public void onPlayerArmorChange(PlayerArmorChangeEvent event) {
+        UUID owner = event.getPlayer().getUniqueId();
+        if (!this.morphedPlayers.containsKey(owner))
+            return;
+
+        MorphEntity morphed = this.morphedPlayers.get(owner);
+        if (event.getNewItem() != null)
+            morphed.handleArmorItems(event.getSlotType(), event.getNewItem());
+
+    }
+
+    @EventHandler
+    public void onPlayerItemSwap(PlayerSwapHandItemsEvent event) {
+        UUID owner = event.getPlayer().getUniqueId();
+        if (!this.morphedPlayers.containsKey(owner))
+            return;
+        MorphEntity morphed = this.morphedPlayers.get(owner);
+        if (event.getMainHandItem() != null && event.getOffHandItem() != null)
+            morphed.handleHandItems(event.getMainHandItem(), event.getOffHandItem());
+
+    }
+
+    @EventHandler
+    public void onPlayerItemSwap(PlayerItemHeldEvent event) {
+        UUID owner = event.getPlayer().getUniqueId();
+        if (!this.morphedPlayers.containsKey(owner))
+            return;
+
+        MorphEntity morphed = this.morphedPlayers.get(owner);
+        morphed.handleHandItems(event.getPlayer().getInventory().getItemInMainHand(), event.getPlayer().getInventory().getItemInOffHand());
+    }
+
+    @EventHandler
     public void onPlayerDamage(EntityDamageEvent event) {
-        if(!(event.getEntity() instanceof Player))
+        if (!(event.getEntity() instanceof Player))
             return;
 
         UUID owner = event.getEntity().getUniqueId();
-        if(!this.morphedPlayers.containsKey(owner))
+        if (!this.morphedPlayers.containsKey(owner))
             return;
+
 
         MorphEntity morphed = this.morphedPlayers.get(owner);
         PacketPlayOutAnimation anm = new PacketPlayOutAnimation(morphed.getMorph(), 1);
@@ -188,34 +230,36 @@ public class MorphMechanics extends AGameMechanic {
 
     @EventHandler
     public void onPlayerSleep(PlayerBedEnterEvent event) {
-        if(!event.getBedEnterResult().equals(PlayerBedEnterEvent.BedEnterResult.OK))
+        if (!event.getBedEnterResult().equals(PlayerBedEnterEvent.BedEnterResult.OK))
             return;
 
         UUID owner = event.getPlayer().getUniqueId();
-        if(!this.morphedPlayers.containsKey(owner))
+        if (!this.morphedPlayers.containsKey(owner))
             return;
 
         MorphEntity morphed = this.morphedPlayers.get(owner);
         morphed.getMorph().setPose(EntityPose.SLEEPING);
-        morphed.handleTeleport(event.getBed().getLocation());
+        morphed.handleTeleport(event.getBed().getLocation(), morphed.getOwnerPlayer().getHeadRotation());
         morphed.handleUpdate();
     }
 
     @EventHandler
     public void onPlayerSleep(PlayerBedLeaveEvent event) {
         UUID owner = event.getPlayer().getUniqueId();
-        if(!this.morphedPlayers.containsKey(owner))
+        if (!this.morphedPlayers.containsKey(owner))
             return;
 
         MorphEntity morphed = this.morphedPlayers.get(owner);
+        EntityPlayer nmsOwner = morphed.getOwnerPlayer();
+
         morphed.getMorph().setPose(EntityPose.STANDING);
-        morphed.handleTeleport(event.getPlayer().getLocation());
+        morphed.handleTeleport(event.getPlayer().getLocation(), nmsOwner.getHeadRotation());
         morphed.handleUpdate();
     }
 
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
-        if(isMorphed(event.getEntity()))
+        if (isMorphed(event.getEntity()))
             demorphPlayer(event.getEntity());
     }
 

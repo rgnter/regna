@@ -3,10 +3,8 @@ package eu.realmcompany.regna.game.mechanics.magic.alchemy;
 import eu.realmcompany.regna.abstraction.game.AGameMechanic;
 import eu.realmcompany.regna.game.mcdev.PktStatics;
 import eu.realmcompany.regna.game.mechanics.RegnaMechanics;
-import net.minecraft.server.v1_16_R3.EntityPlayer;
-import net.minecraft.server.v1_16_R3.ItemBook;
-import net.minecraft.server.v1_16_R3.PacketPlayOutWorldParticles;
-import net.minecraft.server.v1_16_R3.Particles;
+import eu.realmcompany.regna.game.mechanics.magic.morph.model.MorphEntity;
+import net.minecraft.server.v1_16_R3.*;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
@@ -68,28 +66,53 @@ public class AlchemyMechanics extends AGameMechanic {
                 CraftItem item = alchemyTest.get(uuid);
                 if(item.isInWater()) {
                     if(item.getItemStack().getType().equals(Material.OXEYE_DAISY)) {
-                        final Vector loc = player.getEyeLocation().toVector();
-                        Executors.newSingleThreadExecutor().submit(() -> {
-                            for(int azimuth = 0; azimuth < 360; azimuth+=+6) {
-                                for(int incline = 0; incline < 180; incline+=+6) {
-                                    Vector pos = Mth.sphericalToCartesian(0.5, azimuth, incline).add(loc);
-                                    PacketPlayOutWorldParticles pkt = new PacketPlayOutWorldParticles(Particles.CLOUD, true, pos.getX(), pos.getY(), pos.getZ(), 0, 0, 0, 1, 1);
-                                    PktStatics.sendPacketToAll(pkt);
-                                }
-                            }
-                        });
-                        getMechanics().getMorph().morphPlayer(player, "skeleton");
+                        var entity =  getMechanics().getMorph().morphPlayer(player, "skeleton");
+                        if(entity != null) {
+                            playTransformEffect(player, entity);
+                        }
                     }
-                    else if(item.getItemStack().getType().equals(Material.POPPY))
-                        getMechanics().getMorph().morphPlayer(player, "cat");
-                    else if(item.getItemStack().getType().equals(Material.GUNPOWDER))
-                        getMechanics().getMorph().morphPlayer(player, "creeper");
-                    else if(item.getItemStack().getType().equals(Material.ROTTEN_FLESH))
-                        getMechanics().getMorph().morphPlayer(player, "zombie");
+                    else if(item.getItemStack().getType().equals(Material.POPPY)) {
+                        var entity = getMechanics().getMorph().morphPlayer(player, "cat");
+                        if(entity != null) {
+                            playTransformEffect(player, entity);
+                        }
+                    }
+                    else if(item.getItemStack().getType().equals(Material.GUNPOWDER)) {
+                        var entity = getMechanics().getMorph().morphPlayer(player, "creeper");
+                        if(entity != null) {
+                            playTransformEffect(player, entity);
+                        }
+                    }
+                    else if(item.getItemStack().getType().equals(Material.ROTTEN_FLESH)) {
+                        var entity = getMechanics().getMorph().morphPlayer(player, "zombie");
+                        if(entity != null) {
+                            playTransformEffect(player, entity);
+                        }
+                    }
+                    else if(item.getItemStack().getType().equals(Material.DIAMOND)) {
+                        var entity = getMechanics().getMorph().morphPlayer(player, "human");
+                        if(entity != null) {
+                            playTransformEffect(player, entity);
+                        }
+
+                    }
                     this.alchemyTest.remove(uuid);
                 }
             }
         }
+    }
+    
+    private void playTransformEffect(Player player, MorphEntity entity) {
+        final Vector loc = player.getEyeLocation().toVector().add(new Vector(0, -(entity.getMorph().getHeight() / 2f), 0));
+        Executors.newSingleThreadExecutor().submit(() -> {
+            for (int azimuth = 0; azimuth < 360; azimuth += +10) {
+                for (int incline = 0; incline < 180; incline += +10) {
+                    Vector pos = Mth.sphericalToCartesian(entity.getMorph().getHeight(), azimuth, incline).add(loc);
+                    PacketPlayOutWorldParticles pkt = new PacketPlayOutWorldParticles(new ParticleParamRedstone(0.97f, 1.00f, 0.86f, 1), true, pos.getX(), pos.getY(), pos.getZ(), 0, 0, 0, 1, 1);
+                    PktStatics.sendPacketToAll(pkt);
+                }
+            }
+        });
     }
 
     @EventHandler

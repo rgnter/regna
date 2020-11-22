@@ -2,7 +2,7 @@ package eu.realmcompany.regna.game.services.admin;
 
 import eu.realmcompany.regna.abstraction.game.AGameService;
 import eu.realmcompany.regna.game.mcdev.PktStatics;
-import eu.realmcompany.regna.game.mechanics.morph.model.MorphEntity;
+import eu.realmcompany.regna.game.mechanics.magic.morph.model.MorphEntity;
 import eu.realmcompany.regna.game.services.RegnaServices;
 import net.minecraft.server.v1_16_R3.*;
 import org.apache.commons.lang.ArrayUtils;
@@ -15,7 +15,6 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -374,16 +373,7 @@ public class AdminGameService extends AGameService {
         Bukkit.getServer().getCommandMap().register("regna", new Command("test") {
             @Override
             public boolean execute(@NotNull CommandSender commandSender, @NotNull String s, @NotNull String[] strings) {
-                Player executor = ((Player) commandSender);
-                EntityPlayer nmsPlayer = PktStatics.getNmsPlayer(executor);
-
-                EntityInsentient entity = EntityTypes.ZOMBIE.create(PktStatics.getNmsWorldServer(executor.getWorld()));
-                entity.setPose(EntityPose.CROUCHING);
-                entity.setPositionRotation(new BlockPosition(nmsPlayer.getPositionVector()), 0, 0);
-
-                nmsPlayer.playerConnection.sendPacket(entity.P());
-
-                nmsPlayer.playerConnection.sendPacket(new PacketPlayOutEntityMetadata(entity.getId(), entity.getDataWatcher(), true));
+                getKaryon().getRegna().getMechanics().getMorph().demorphPlayer(((Player) commandSender));
                 return true;
             }
         });

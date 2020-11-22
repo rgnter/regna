@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Executors;
 
 public class PktStatics {
 
@@ -105,7 +106,36 @@ public class PktStatics {
                 });
     }
 
+    /**
+     * @param world Bukkit World
+     * @return NMS World
+     */
     public static @NotNull WorldServer getNmsWorldServer(@NotNull org.bukkit.World world) {
         return ((CraftWorld) world).getHandle();
+    }
+
+    public static @NotNull PlayerChunkMap getPlayerChunkMap(@NotNull World world) {
+        return ((WorldServer) world).getChunkProvider().playerChunkMap;
+    }
+
+    /**
+     *
+     * @param player
+     * @param playerToHide Player that will be hidden to player.
+     */
+    public static void untrackPlayerFor(@NotNull EntityPlayer player, @NotNull EntityPlayer playerToHide) {
+        PlayerChunkMap playerChunkMap = ((WorldServer)player.world).getChunkProvider().playerChunkMap;
+        PlayerChunkMap.EntityTracker tracker = playerChunkMap.trackedEntities.get(player.getId());
+        if(tracker != null) {
+            tracker.clear(playerToHide);
+        }
+    }
+
+    public static void trackPlayerFor(@NotNull EntityPlayer player, @NotNull EntityPlayer playerToShow) {
+        PlayerChunkMap playerChunkMap = ((WorldServer)player.world).getChunkProvider().playerChunkMap;
+        PlayerChunkMap.EntityTracker tracker = playerChunkMap.trackedEntities.get(player.getId());
+        if(tracker != null) {
+            tracker.updatePlayer(playerToShow);
+        }
     }
 }

@@ -1,10 +1,8 @@
 package eu.realmcompany.regna.game.mechanics;
 
-import eu.realmcompany.regna.RegnaKaryon;
-import eu.realmcompany.regna.diagnostics.timings.Timer;
 import eu.realmcompany.regna.game.Regna;
 import eu.realmcompany.regna.game.mechanics.magic.alchemy.AlchemyMechanics;
-import eu.realmcompany.regna.game.mechanics.morph.MorphMechanics;
+import eu.realmcompany.regna.game.mechanics.magic.morph.MorphMechanics;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import net.minecraft.server.v1_16_R3.MinecraftServer;
