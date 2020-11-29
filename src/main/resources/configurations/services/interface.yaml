@@ -1,0 +1,20 @@
+#
+# ██████╗ ███████╗ ██████╗ ███╗   ██╗ █████╗
+# ██╔══██╗██╔════╝██╔════╝ ████╗  ██║██╔══██╗
+# ██████╔╝█████╗  ██║  ███╗██╔██╗ ██║███████║
+# ██╔══██╗██╔══╝  ██║   ██║██║╚██╗██║██╔══██║
+# ██║  ██║███████╗╚██████╔╝██║ ╚████║██║  ██║
+# ╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═╝
+#
+# ASCII Shadow from http://patorjk.com/software/taag/
+#
+# Default configuration for Interface Service
+# Version:    ${version}
+# Build time: ${timestamp}
+# --
+#
+
+root:
+  action-bar-coords:
+    enabled: true
+    format: "{\"text\":\"&7x:&f {coords_x} &8| &7y:&f {coords_y} &8| &7z:&f {coords_z}\"}"

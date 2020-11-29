@@ -5,6 +5,7 @@ import eu.realmcompany.regna.diagnostics.timings.Timer;
 import eu.realmcompany.regna.game.Regna;
 import eu.realmcompany.regna.game.services.admin.AdminGameService;
 import eu.realmcompany.regna.game.services.chat.ChatService;
+import eu.realmcompany.regna.game.services.interfacee.InterfaceService;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
@@ -38,6 +39,7 @@ public class RegnaServices {
         log.info("Registering services...");
         registerService(ChatService.class);
         registerService(AdminGameService.class);
+        registerService(InterfaceService.class);
 
         log.info("Constructing services...");
         this.services.forEach((serviceClass, service) -> {
