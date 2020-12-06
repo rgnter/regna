@@ -17,4 +17,4 @@
 root:
   action-bar-coords:
     enabled: true
-    format: "{\"text\":\"&7x:&f {coords_x} &8| &7y:&f {coords_y} &8| &7z:&f {coords_z}\"}"
+    format: "{\"text\":\"&f{target_cursor} &8| &7x:&f {coords_x} &8| &7y:&f {coords_y} &8| &7z:&f {coords_z}\"}"

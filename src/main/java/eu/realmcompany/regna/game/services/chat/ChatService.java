@@ -163,7 +163,7 @@ public class ChatService extends AGameService {
             if (mentionPermission == null || sender.hasPermission(mentionPermission))
                 for (Player player : getOnlinePlayers()) {
                     if (message.toLowerCase().contains(mentionIndicator + player.getName().toLowerCase())) {
-                        message = message.replaceAll("(?i)" + mentionIndicator + player.getName(), mentionColor + mentionIndicator + playerName + "&r");
+                        message = message.replaceAll("(?i)" + mentionIndicator + player.getName(), mentionColor + mentionIndicator +  player.getName().toLowerCase() + "&r");
                         player.playSound(player.getLocation(), mentionSound, mentionVolume, mentionPitch);
                     }
                 }

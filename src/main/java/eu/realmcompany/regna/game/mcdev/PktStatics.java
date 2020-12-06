@@ -8,6 +8,7 @@ import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftWolf;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -105,6 +106,39 @@ public class PktStatics {
                     player.playerConnection.sendPacket(pkt);
                 });
     }
+
+    /**
+     * Creates particle packet
+     * @param particle         Particle type from net.minecraft.server.v1_16_R1.Particles
+     * @param overrideLimiter  Override limiter
+     * @param x                World pos X
+     * @param y                World pos Y
+     * @param z                World pos Z
+     * @param offsetX          Offset of X
+     * @param offsetY          Offset of Y
+     * @param offsetZ          Offset of Z
+     * @param speed            Speed of particle
+     * @param count            Count of particles
+     * @return packet
+     */
+    public static PacketPlayOutWorldParticles makeParticlePacket(@NotNull ParticleType particle, boolean overrideLimiter, double x, double y, double z, float offsetX, float offsetY, float offsetZ, float speed, int count) {
+        return new PacketPlayOutWorldParticles(particle, overrideLimiter, x, y, z, offsetX, offsetY, offsetZ, speed, count);
+    }
+
+    /**
+     * Creates particle packet
+     * @param particle         Particle type from net.minecraft.server.v1_16_R1.Particles
+     * @param overrideLimiter  Override limiter
+     * @param loc              World pos vector
+     * @param offset           Offset vector
+     * @param speed            Speed of particle
+     * @param count            Count of particles
+     * @return packet
+     */
+    public static PacketPlayOutWorldParticles makeParticlePacket(@NotNull ParticleType particle, boolean overrideLimiter, Vector loc, @NotNull Vector offset, float speed, int count) {
+        return makeParticlePacket(particle, overrideLimiter, loc.getX(), loc.getY(), loc.getZ(), (float) offset.getX(), (float) offset.getY(), (float) offset.getZ(), speed, count);
+    }
+
 
     /**
      * @param world Bukkit World
